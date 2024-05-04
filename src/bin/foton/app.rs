@@ -1,9 +1,12 @@
+use std::cmp::Reverse;
+
 use clap::Parser as _;
 
+use foton::{get_tag_values_distribution, get_tags_distribution, Library};
+
 use crate::{
-    cli::{Cli, Command, ConfigCommand},
+    cli::{Cli, Command, ConfigCommand, TagCommand},
     config::Config,
-    dir::Library,
 };
 
 type AnyError = Box<dyn std::error::Error + Send + Sync>;
@@ -47,6 +50,35 @@ pub fn run() -> Result<(), AnyError> {
                 println!("{}", Config::stub());
             }
         },
+        Command::Tags(ta) => {
+            if let Some(config) = config {
+                let lib = Library::with_paths(config.library);
+                match ta.command {
+                    TagCommand::List => {
+                        let all_tags = get_tags_distribution(lib.iter_all());
+                        let mut all_tags: Vec<_> = all_tags.into_iter().collect();
+                        // FIXME: do not .clone()
+                        all_tags
+                            .sort_unstable_by_key(|(key, count)| (Reverse(*count), key.clone()));
+                        for (k, count) in all_tags {
+                            println!("{:6} {}", count, k);
+                        }
+                    }
+                    TagCommand::Group { tag_name } => {
+                        let all_tags = get_tag_values_distribution(&tag_name, lib.iter_all());
+                        let mut all_tags: Vec<_> = all_tags.into_iter().collect();
+                        // FIXME: do not .clone()
+                        all_tags
+                            .sort_unstable_by_key(|(val, count)| (Reverse(*count), val.clone()));
+                        for (k, count) in all_tags {
+                            println!("{:6} {}", count, k);
+                        }
+                    }
+                }
+            } else {
+                fallback_config_not_found();
+            }
+        }
     }
 
     Ok(())

@@ -9,6 +9,7 @@ use super::AnyError;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     pub library: Vec<PathBuf>,
+    pub foton_tagged_dir: Option<PathBuf>,
 }
 
 const CONFIG_NAME: &str = "foton.toml";
@@ -33,6 +34,7 @@ impl Config {
                 .map(|hd| hd.join("Photos"))
                 .into_iter()
                 .collect(),
+            foton_tagged_dir: home::home_dir().map(|hd| hd.join("Photos").join("tagged")),
         }
     }
 
