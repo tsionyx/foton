@@ -3,7 +3,7 @@ use std::{path::PathBuf, rc::Rc};
 
 use walkdir::WalkDir;
 
-use crate::file_types::MediaType;
+use crate::file_types::{Media, MediaType};
 
 #[derive(Debug)]
 /// Filesystem entry point(s) for your photo collection.
@@ -23,7 +23,10 @@ impl Library {
     }
 
     /// Iter all files with given extensions in a [`Library`].
-    fn iter_extensions(&self, extensions: Vec<&'static str>) -> impl Iterator<Item = PathBuf> + '_ {
+    fn iter_extensions(
+        &self,
+        extensions: Vec<(MediaType, &'static str)>,
+    ) -> impl Iterator<Item = Media> + '_ {
         let extensions_shared = Rc::new(extensions);
         self.paths.iter().flat_map(move |root| {
             let extensions = Rc::clone(&extensions_shared);
@@ -33,21 +36,33 @@ impl Library {
                     return None;
                 }
                 let ext = entry.extension()?.to_str()?.to_ascii_lowercase();
-                extensions.contains(&ext.as_str()).then_some(entry)
+                let type_ = extensions
+                    .iter()
+                    .find_map(|(type_, extension)| (extension == &ext).then_some(*type_));
+                type_.map(|type_| Media { type_, path: entry })
             })
         })
     }
 
     /// Iter all files of a given [`MediaType`] in a [`Library`].
-    pub fn iter(&self, resource_type: MediaType) -> impl Iterator<Item = PathBuf> + '_ {
-        let extensions = resource_type.supported_extensions();
+    pub fn iter(&self, resource_type: MediaType) -> impl Iterator<Item = Media> + '_ {
+        let extensions = resource_type
+            .supported_extensions()
+            .into_iter()
+            .map(|ext| (resource_type, ext))
+            .collect();
         self.iter_extensions(extensions)
     }
 
     /// Iter files of all supported [`MediaType`]s in a [`Library`].
-    pub fn iter_all(&self) -> impl Iterator<Item = PathBuf> + '_ {
+    pub fn iter_all(&self) -> impl Iterator<Item = Media> + '_ {
         let extensions: Vec<_> = enum_iterator::all::<MediaType>()
-            .flat_map(|resource_type| resource_type.supported_extensions())
+            .flat_map(|resource_type| {
+                resource_type
+                    .supported_extensions()
+                    .into_iter()
+                    .map(move |ext| (resource_type, ext))
+            })
             .collect();
         self.iter_extensions(extensions)
     }

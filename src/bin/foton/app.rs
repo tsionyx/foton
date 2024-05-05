@@ -21,11 +21,11 @@ pub fn run() -> Result<(), AnyError> {
                 let lib = Library::with_paths(config.library);
                 if let Some(list_resource) = type_ {
                     for f in lib.iter(list_resource) {
-                        println!("{}", f.display());
+                        println!("{}", f);
                     }
                 } else {
                     for f in lib.iter_all() {
-                        println!("{}", f.display());
+                        println!("{}", f);
                     }
                 }
             } else {
