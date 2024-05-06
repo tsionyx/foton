@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{builder::PossibleValue, Args, Parser, Subcommand, ValueEnum};
 
 use foton::MediaType;
 
@@ -10,11 +10,11 @@ pub struct Cli {
 }
 
 #[derive(Debug, Clone, Subcommand)]
-pub enum Command {
+pub(crate) enum Command {
     /// List files in a collection.
     List {
         /// Type of the resource to find.
-        type_: Option<MediaType>,
+        type_: Option<PrivateMediaType>,
     },
 
     /// View or create a configuration file.
@@ -24,14 +24,45 @@ pub enum Command {
     Tags(TagArgs),
 }
 
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum PrivateMediaType {
+    Photo,
+    Animation,
+    Video,
+}
+
+impl From<PrivateMediaType> for MediaType {
+    fn from(value: PrivateMediaType) -> Self {
+        match value {
+            PrivateMediaType::Photo => Self::Photo,
+            PrivateMediaType::Animation => Self::Animation,
+            PrivateMediaType::Video => Self::Video,
+        }
+    }
+}
+
+impl ValueEnum for PrivateMediaType {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Photo, Self::Animation, Self::Video]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Self::Photo => PossibleValue::new("photo"),
+            Self::Animation => PossibleValue::new("animation"),
+            Self::Video => PossibleValue::new("video"),
+        })
+    }
+}
+
 #[derive(Debug, Copy, Clone, Args)]
-pub struct ConfigArgs {
+pub(crate) struct ConfigArgs {
     #[command(subcommand)]
     pub command: ConfigCommand,
 }
 
 #[derive(Debug, Copy, Clone, Subcommand)]
-pub enum ConfigCommand {
+pub(crate) enum ConfigCommand {
     /// Print the current configuration file in use (if any).
     Print,
 
@@ -43,7 +74,7 @@ pub enum ConfigCommand {
 }
 
 #[derive(Debug, Clone, Args)]
-pub struct TagArgs {
+pub(crate) struct TagArgs {
     #[command(subcommand)]
     pub command: TagCommand,
 }

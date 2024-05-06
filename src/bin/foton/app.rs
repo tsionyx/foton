@@ -19,7 +19,7 @@ pub fn run() -> Result<(), AnyError> {
             if let Some(config) = config {
                 let lib = Library::with_paths(config.library);
                 if let Some(list_resource) = type_ {
-                    for f in lib.iter(list_resource) {
+                    for f in lib.iter(list_resource.into()) {
                         println!("{}", f);
                     }
                 } else {

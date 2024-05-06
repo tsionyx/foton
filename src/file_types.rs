@@ -3,11 +3,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use clap::ValueEnum;
 use enum_iterator::Sequence;
 
 #[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Sequence, ValueEnum)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Sequence)]
 /// High-level type of the photo-video resource.
 pub enum MediaType {
     Photo,
