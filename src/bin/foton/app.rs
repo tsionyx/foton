@@ -1,7 +1,7 @@
 use clap::Parser as _;
 use log::warn;
 
-use foton::Library;
+use foton::{Library, TimeFormat, TimeSource};
 
 use crate::{
     cli::{Cli, Command, ConfigCommand, TagCommand},
@@ -66,6 +66,22 @@ pub fn run() -> Result<(), AnyError> {
                                 Err(err) => {
                                     warn!("{}: {:?}", resource, err);
                                 }
+                            }
+                        }
+                    }
+                    TagCommand::GetTime { format, tag } => {
+                        let format = TimeFormat(format);
+                        let source = if let Some(name) = tag {
+                            TimeSource::Tag { name, format }
+                        } else {
+                            TimeSource::FileName { format }
+                        };
+                        let sources = [source];
+                        for f in lib.iter_all() {
+                            if let Some(time) = f.get_datetime(&sources) {
+                                println!("{}: {:?}", f, time);
+                            } else {
+                                println!("{}: UNDEFINED", f);
                             }
                         }
                     }

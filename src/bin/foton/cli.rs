@@ -83,4 +83,30 @@ pub(crate) struct TagArgs {
 pub(crate) enum TagCommand {
     /// Extract all tags for every media file in the photos' collection.
     List,
+
+    /// Extract date and time information
+    GetTime {
+        #[arg(long_help = r#"How to parse the string into datetime.
+
+Examples:
+- IMG_%Y%m%d_%H%M%S.jpg
+- VID_%Y%m%d_%H%M%S.mp4
+- Ascii(["%Y:%m:%d %T"]) (for the EXIF tags)
+- %Y-%m-%dT%H:%M:%S%.6f%Z (ISO-8601)
+- %+ (the same as the previous example)"#)]
+        format: String,
+
+        #[arg(
+            short,
+            long,
+            long_help = r#"The metadata tag will be used as the source.
+
+Examples:
+- 'Date and time of original data generation' (EXIF tag);
+- 'creation_time' (mp4 tag);
+
+If the tag is missing, the file name will be used as the source."#
+        )]
+        tag: Option<String>,
+    },
 }

@@ -1,6 +1,6 @@
 use std::{collections::HashMap as Map, fs::File, io::BufReader, path::Path};
 
-use exif::{Reader, Value};
+use exif::{Reader, Tag, Value};
 use once_cell::sync::Lazy;
 
 use crate::{file_types::Media, AnyError, MediaType};
@@ -20,6 +20,31 @@ where
                 .map(|desc| (desc.to_string(), f.value.clone()))
         })
         .collect())
+}
+
+/// Find the [EXIF tag][Tag] by a description.
+///
+/// TODO: find a better way to enumerate well-known constants
+pub fn find_exif_tag(description: &str) -> Option<Tag> {
+    let lower_description = description.to_lowercase();
+    let contexts = [
+        exif::Context::Exif,
+        exif::Context::Gps,
+        exif::Context::Tiff,
+        exif::Context::Interop,
+    ];
+    for ctx in contexts {
+        for i in 0..=u16::MAX {
+            let tag = Tag(ctx, i);
+            if let Some(desc) = tag.description() {
+                let desc = desc.to_lowercase();
+                if desc == lower_description {
+                    return Some(tag);
+                }
+            }
+        }
+    }
+    None
 }
 
 #[derive(Debug, Copy, Clone)]
