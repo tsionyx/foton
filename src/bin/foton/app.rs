@@ -1,8 +1,7 @@
-use std::cmp::Reverse;
-
 use clap::Parser as _;
+use log::warn;
 
-use foton::{get_tag_values_distribution, get_tags_distribution, Library};
+use foton::Library;
 
 use crate::{
     cli::{Cli, Command, ConfigCommand, TagCommand},
@@ -55,23 +54,19 @@ pub fn run() -> Result<(), AnyError> {
                 let lib = Library::with_paths(config.library);
                 match ta.command {
                     TagCommand::List => {
-                        let all_tags = get_tags_distribution(lib.iter_all());
-                        let mut all_tags: Vec<_> = all_tags.into_iter().collect();
-                        // FIXME: do not .clone()
-                        all_tags
-                            .sort_unstable_by_key(|(key, count)| (Reverse(*count), key.clone()));
-                        for (k, count) in all_tags {
-                            println!("{:6} {}", count, k);
-                        }
-                    }
-                    TagCommand::Group { tag_name } => {
-                        let all_tags = get_tag_values_distribution(&tag_name, lib.iter_all());
-                        let mut all_tags: Vec<_> = all_tags.into_iter().collect();
-                        // FIXME: do not .clone()
-                        all_tags
-                            .sort_unstable_by_key(|(val, count)| (Reverse(*count), val.clone()));
-                        for (k, count) in all_tags {
-                            println!("{:6} {}", count, k);
+                        for resource in lib.iter_all() {
+                            match resource.get_tags() {
+                                Ok(map) => {
+                                    println!("--- {} ---", resource);
+                                    for (k, v) in map {
+                                        println!("{}: {}", k, v);
+                                    }
+                                    println!();
+                                }
+                                Err(err) => {
+                                    warn!("{}: {:?}", resource, err);
+                                }
+                            }
                         }
                     }
                 }

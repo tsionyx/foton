@@ -10,10 +10,6 @@ mod dir;
 mod file_types;
 mod tags;
 
-pub use self::{
-    dir::Library,
-    file_types::MediaType,
-    tags::{get_image_tags, get_tag_values_distribution, get_tags_distribution},
-};
+pub use self::{dir::Library, file_types::MediaType, tags::get_image_tags};
 
 type AnyError = Box<dyn std::error::Error + Send + Sync>;

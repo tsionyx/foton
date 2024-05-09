@@ -49,9 +49,7 @@ pub struct TagArgs {
 }
 
 #[derive(Debug, Clone, Subcommand)]
-pub enum TagCommand {
-    /// Extract all the unique tag's names from the photos' collection.
+pub(crate) enum TagCommand {
+    /// Extract all tags for every media file in the photos' collection.
     List,
-    /// Show distribution of photos by grouping by tag name.
-    Group { tag_name: String },
 }
