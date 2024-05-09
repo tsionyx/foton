@@ -91,7 +91,7 @@ pub(crate) enum TagCommand {
 Examples:
 - IMG_%Y%m%d_%H%M%S.jpg
 - VID_%Y%m%d_%H%M%S.mp4
-- Ascii(["%Y:%m:%d %T"]) (for the EXIF tags)
+- %F %T (for the EXIF tags)
 - %Y-%m-%dT%H:%M:%S%.6f%Z (ISO-8601)
 - %+ (the same as the previous example)"#)]
         format: String,

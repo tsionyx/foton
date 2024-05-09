@@ -1,12 +1,24 @@
-use std::{collections::HashMap as Map, fs::File, io::BufReader, path::Path};
+use std::{collections::HashMap as Map, fmt, fs::File, io::BufReader, path::Path};
 
 use exif::{Reader, Tag, Value};
 use once_cell::sync::Lazy;
 
 use crate::{file_types::Media, AnyError, MediaType};
 
+#[derive(Debug, Clone)]
+pub struct ExifValue {
+    tag: Tag,
+    value: Value,
+}
+
+impl fmt::Display for ExifValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.value.display_as(self.tag).fmt(f)
+    }
+}
+
 /// Get tags of an image by its path.
-pub fn get_image_tags<P>(path: &P) -> Result<Map<String, Value>, AnyError>
+pub fn get_image_tags<P>(path: &P) -> Result<Map<String, ExifValue>, AnyError>
 where
     P: AsRef<Path> + ?Sized,
 {
@@ -15,9 +27,15 @@ where
     Ok(exif
         .fields()
         .filter_map(|f| {
-            f.tag
-                .description()
-                .map(|desc| (desc.to_string(), f.value.clone()))
+            f.tag.description().map(|desc| {
+                (
+                    desc.to_string(),
+                    ExifValue {
+                        tag: f.tag,
+                        value: f.value.clone(),
+                    },
+                )
+            })
         })
         .collect())
 }
@@ -73,11 +91,8 @@ impl Media {
     /// Fetch the tags' collection from a media.
     pub fn get_tags(&self) -> Result<Map<String, String>, AnyError> {
         match self.type_ {
-            MediaType::Photo | MediaType::Animation => get_image_tags(self.path()).map(|tags| {
-                tags.into_iter()
-                    .map(|(k, v)| (k, format!("{:?}", v)))
-                    .collect()
-            }),
+            MediaType::Photo | MediaType::Animation => get_image_tags(self.path())
+                .map(|tags| tags.into_iter().map(|(k, v)| (k, v.to_string())).collect()),
             MediaType::Video => {
                 let md = FFMPEG.get_metadata(self.path())?;
                 Ok(md)
