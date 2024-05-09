@@ -28,7 +28,7 @@ pub fn run() -> Result<(), AnyError> {
                     }
                 }
             } else {
-                fallback_config_not_found();
+                fallback_config_not_found()?;
             }
         }
         Command::Config(ca) => match ca.command {
@@ -36,7 +36,7 @@ pub fn run() -> Result<(), AnyError> {
                 if let Some(config) = config {
                     println!("{}", config);
                 } else {
-                    fallback_config_not_found();
+                    fallback_config_not_found()?;
                 }
             }
             ConfigCommand::PrintLoc => {
@@ -87,7 +87,7 @@ pub fn run() -> Result<(), AnyError> {
                     }
                 }
             } else {
-                fallback_config_not_found();
+                fallback_config_not_found()?;
             }
         }
     }
@@ -95,30 +95,39 @@ pub fn run() -> Result<(), AnyError> {
     Ok(())
 }
 
-fn fallback_config_not_found() {
+fn fallback_config_not_found() -> Result<(), AnyError> {
+    use std::fmt::Write as _;
+
     let locations: Vec<_> = Config::locations().collect();
 
-    eprintln!("Not found config file in any of the locations");
+    let mut err = String::new();
+    writeln!(err, "Not found config file in any of the locations")?;
     for loc in &locations {
-        eprintln!(" - {}", loc.display());
+        writeln!(err, " - {}", loc.display())?;
     }
 
-    eprintln!("To continue please create a file in any of the locations above.");
+    writeln!(
+        err,
+        "To continue please create a file in any of the locations above."
+    )?;
+
+    writeln!(err)?;
+    writeln!(err, "# Example")?;
     let example = if let Some(p) = locations.last() {
-        eprintln!();
-        eprintln!("cat <<EOF > {}", p.display());
+        writeln!(err, "cat <<EOF > {}", p.display())?;
         true
     } else {
-        println!();
-        println!("```");
+        writeln!(err, "```")?;
         false
     };
 
-    println!("{}", Config::stub());
+    writeln!(err, "{}", Config::stub())?;
 
     if example {
-        eprintln!("EOF");
+        write!(err, "EOF")?;
     } else {
-        println!("```");
+        write!(err, "```")?;
     }
+
+    Err(err.into())
 }

@@ -1,10 +1,15 @@
+use std::process::exit;
+
 mod app;
 mod cli;
 mod config;
 
 type AnyError = Box<dyn std::error::Error + Send + Sync>;
 
-fn main() -> Result<(), AnyError> {
+fn main() {
     env_logger::init();
-    app::run()
+    if let Err(err) = app::run() {
+        eprintln!("Error: {}", err);
+        exit(1)
+    }
 }
