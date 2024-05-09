@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use clap::Parser as _;
 use log::warn;
 
@@ -70,18 +72,33 @@ pub fn run() -> Result<(), AnyError> {
                         }
                     }
                     TagCommand::GetTime { format, tag } => {
-                        let format = TimeFormat(format);
-                        let source = if let Some(name) = tag {
-                            TimeSource::Tag { name, format }
-                        } else {
-                            TimeSource::FileName { format }
-                        };
-                        let sources = [source];
-                        for f in lib.iter_all() {
-                            if let Some(time) = f.get_datetime(&sources) {
-                                println!("{}: {:?}", f, time);
+                        let sources = if let Some(format) = format {
+                            let format = TimeFormat(format);
+                            let source = if let Some(name) = tag {
+                                TimeSource::Tag { name, format }
                             } else {
-                                println!("{}: UNDEFINED", f);
+                                TimeSource::FileName { format }
+                            };
+                            Cow::Owned(vec![source])
+                        } else {
+                            config
+                                .metadata
+                                .as_ref()
+                                .map(|md| Cow::Borrowed(&md.time_source))
+                                .unwrap_or_default()
+                        };
+                        if sources.is_empty() {
+                            return Err(
+                                "Either specify --format or add metadata.time_sources into config"
+                                    .into(),
+                            );
+                        } else {
+                            for f in lib.iter_all() {
+                                if let Some(time) = f.get_datetime(&sources) {
+                                    println!("{}: {:?}", f, time);
+                                } else {
+                                    println!("{}: UNDEFINED", f);
+                                }
                             }
                         }
                     }

@@ -2,7 +2,7 @@ use std::{borrow::Cow, collections::HashMap};
 
 use chrono::NaiveDateTime;
 use log::warn;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::file_types::Media;
 
@@ -13,7 +13,8 @@ pub struct Time {
     source: InfoSource,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
 /// Source of Time for a media file.
 pub enum InfoSource {
     /// A lot of cameras produce files with the datetime in their names.
@@ -34,7 +35,7 @@ pub enum InfoSource {
     },
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 /// Format for parsing datetime.
 ///
 /// See the [docs][chrono::format::strftime].

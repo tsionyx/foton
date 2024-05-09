@@ -93,8 +93,10 @@ Examples:
 - VID_%Y%m%d_%H%M%S.mp4
 - %F %T (for the EXIF tags)
 - %Y-%m-%dT%H:%M:%S%.6f%Z (ISO-8601)
-- %+ (the same as the previous example)"#)]
-        format: String,
+- %+ (the same as the previous example)
+
+If the format not specified, try various `metadata.time_source` from config"#)]
+        format: Option<String>,
 
         #[arg(
             short,
