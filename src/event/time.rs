@@ -1,6 +1,6 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDate, NaiveDateTime};
 use log::warn;
 use serde::{Deserialize, Serialize};
 
@@ -36,10 +36,38 @@ pub enum InfoSource {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-/// Format for parsing datetime.
-///
-/// See the [docs][chrono::format::strftime].
-pub struct Format(pub String);
+/// How to extract the datetime from the string.
+pub struct Format {
+    /// Format for parsing datetime.
+    ///
+    /// See the [docs][chrono::format::strftime].
+    pub fmt: String,
+
+    /// If specified, only the prefix of the given string
+    /// would be used for matching against the format.
+    pub take_prefix: Option<usize>,
+
+    #[serde(default)]
+    /// If set, do not try to parse the whole datetime,
+    /// but only the date (00:00:00 will be assumed).
+    pub only_date: bool,
+}
+
+impl From<String> for Format {
+    fn from(value: String) -> Self {
+        Self {
+            fmt: value,
+            take_prefix: None,
+            only_date: false,
+        }
+    }
+}
+
+impl From<&str> for Format {
+    fn from(value: &str) -> Self {
+        Self::from(value.to_owned())
+    }
+}
 
 impl Media {
     fn get_value<'s, 't>(
@@ -56,7 +84,7 @@ impl Media {
                 let all_tags = cached_tags.map(Cow::Borrowed).or_else(|| {
                     self.get_tags()
                         .map_err(|err| {
-                            warn!("Failed to get tags for datetime: {:?}", err);
+                            warn!("Failed to get datetime tags for {}: {:?}", self, err);
                         })
                         .ok()
                         .map(Cow::Owned)
@@ -83,7 +111,18 @@ impl Media {
         let format = match source {
             InfoSource::FileName { format } | InfoSource::Tag { format, .. } => format,
         };
-        NaiveDateTime::parse_from_str(&value, &format.0).ok()
+        let value = if let Some(n) = format.take_prefix {
+            value.chars().take(n).collect()
+        } else {
+            value
+        };
+
+        if format.only_date {
+            let date = NaiveDate::parse_from_str(&value, &format.fmt).ok()?;
+            date.and_hms_opt(0, 0, 0)
+        } else {
+            NaiveDateTime::parse_from_str(&value, &format.fmt).ok()
+        }
     }
 
     /// Retrieves DateTime from the media metadata
@@ -92,7 +131,7 @@ impl Media {
         let all_tags = self
             .get_tags()
             .map_err(|err| {
-                warn!("Failed to get tags for datetime: {:?}", err);
+                warn!("Failed to get datetime tags for {}: {:?}", self, err);
             })
             .ok();
 

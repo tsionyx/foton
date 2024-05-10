@@ -47,30 +47,62 @@ impl Config {
             metadata: Some(MetadataExtractorConfig {
                 time_source: vec![
                     TimeSource::FileName {
-                        format: TimeFormat("IMG_%Y%m%d_%H%M%S.jpg".into()),
+                        format: TimeFormat {
+                            fmt: "IMG_%Y%m%d_%H%M%S".into(),
+                            take_prefix: Some(19),
+                            only_date: false,
+                        },
                     },
                     TimeSource::FileName {
-                        format: TimeFormat("VID_%Y%m%d_%H%M%S.mp4".into()),
+                        format: TimeFormat {
+                            fmt: "GIF_%Y%m%d_%H%M%S".into(),
+                            take_prefix: Some(19),
+                            only_date: false,
+                        },
+                    },
+                    TimeSource::FileName {
+                        format: TimeFormat::from("VID_%Y%m%d_%H%M%S.mp4"),
+                    },
+                    TimeSource::FileName {
+                        format: TimeFormat::from("%Y%m%d_%H%M%S.jpg"),
                     },
                     TimeSource::Tag {
                         name: "Date and time of original data generation".into(),
-                        format: TimeFormat("%F %T".into()),
+                        format: TimeFormat::from("%F %T"),
                     },
                     TimeSource::Tag {
                         name: "creation_time".into(),
-                        format: TimeFormat("%+".into()),
+                        format: TimeFormat::from("%+"),
                     },
                     TimeSource::Tag {
                         name: "Date and time of digital data generation".into(),
-                        format: TimeFormat("%F %T".into()),
+                        format: TimeFormat::from("%F %T"),
                     },
                     TimeSource::Tag {
                         name: "File change date and time".into(),
-                        format: TimeFormat("%F %T".into()),
+                        format: TimeFormat::from("%F %T"),
                     },
                     TimeSource::Tag {
                         name: "GPS date".into(),
-                        format: TimeFormat("%F".into()),
+                        format: TimeFormat {
+                            fmt: "%F".into(),
+                            take_prefix: None,
+                            only_date: true,
+                        },
+                    },
+                    TimeSource::FileName {
+                        format: TimeFormat {
+                            fmt: "IMG_%Y%m%d".into(),
+                            take_prefix: Some(12),
+                            only_date: true,
+                        },
+                    },
+                    TimeSource::FileName {
+                        format: TimeFormat {
+                            fmt: "IMG-%Y%m%d".into(),
+                            take_prefix: Some(12),
+                            only_date: true,
+                        },
                     },
                 ],
             }),

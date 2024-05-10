@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use clap::Parser as _;
-use log::warn;
+use log::{info, warn};
 
 use foton::{Library, TimeFormat, TimeSource};
 
@@ -14,6 +14,7 @@ type AnyError = Box<dyn std::error::Error + Send + Sync>;
 
 pub fn run() -> Result<(), AnyError> {
     let config = Config::load()?;
+    info!("Loaded {:?}", config);
     let cli = Cli::parse();
 
     match cli.command {
@@ -73,7 +74,7 @@ pub fn run() -> Result<(), AnyError> {
                     }
                     TagCommand::GetTime { format, tag } => {
                         let sources = if let Some(format) = format {
-                            let format = TimeFormat(format);
+                            let format = TimeFormat::from(format);
                             let source = if let Some(name) = tag {
                                 TimeSource::Tag { name, format }
                             } else {
