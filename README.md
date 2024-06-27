@@ -19,6 +19,12 @@ print()
 " | less
 ```
 
+#### Print location-specific tags
+
+```shell
+cargo run tags list -p Alti -p Geo -p Lati -p North -p Longi -p East -p location
+```
+
 ## Similar crates
 
 - [clineup](https://crates.io/crates/clineup)

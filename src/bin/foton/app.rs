@@ -50,14 +50,21 @@ pub fn run() -> Result<(), AnyError> {
             if let Some(config) = config {
                 let lib = Library::with_paths(config.library);
                 match ta.command {
-                    TagCommand::List { type_ } => {
+                    TagCommand::List { type_, tag_prefix } => {
                         for resource in lib.iter(type_.map(MediaType::from)) {
                             match resource.get_tags() {
                                 Ok(map) => {
                                     println!("--- {} ---", resource);
-                                    for (k, v) in map {
-                                        println!("{}: {}", k, v);
-                                    }
+                                    map.iter()
+                                        .filter(|(k, _)| {
+                                            tag_prefix.is_empty()
+                                                || tag_prefix
+                                                    .iter()
+                                                    .any(|prefix| k.starts_with(prefix))
+                                        })
+                                        .for_each(|(k, v)| {
+                                            println!("{}: {}", k, v);
+                                        });
                                     println!();
                                 }
                                 Err(err) => {

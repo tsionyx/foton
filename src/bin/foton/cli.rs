@@ -83,8 +83,13 @@ pub(crate) struct TagArgs {
 pub(crate) enum TagCommand {
     /// Extract all tags for every media file in the photos' collection.
     List {
+        #[arg(long, short)]
         /// Type of the resource to find.
         type_: Option<PrivateMediaType>,
+
+        #[arg(long, short('p'), value_name = "PREFIX")]
+        /// Filter tags by prefix.
+        tag_prefix: Vec<String>,
     },
 
     /// Extract date and time information
