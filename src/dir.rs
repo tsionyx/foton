@@ -45,7 +45,7 @@ impl Library {
     }
 
     /// Iter all files of a given [`MediaType`] in a [`Library`].
-    pub fn iter(&self, resource_type: MediaType) -> impl Iterator<Item = Media> + '_ {
+    pub fn iter_type(&self, resource_type: MediaType) -> impl Iterator<Item = Media> + '_ {
         let extensions = resource_type
             .supported_extensions()
             .into_iter()
@@ -65,5 +65,17 @@ impl Library {
             })
             .collect();
         self.iter_extensions(extensions)
+    }
+
+    /// Iter files of a particular [`MediaType`]s or all supported [`MediaType`]s in a [`Library`].
+    pub fn iter(
+        &self,
+        resource_type: impl Into<Option<MediaType>>,
+    ) -> Box<dyn Iterator<Item = Media> + '_> {
+        if let Some(resource_type) = resource_type.into() {
+            Box::new(self.iter_type(resource_type))
+        } else {
+            Box::new(self.iter_all())
+        }
     }
 }

@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use clap::Parser as _;
 use log::{info, warn};
 
-use foton::{Library, TimeFormat, TimeSource};
+use foton::{Library, MediaType, TimeFormat, TimeSource};
 
 use crate::{
     cli::{Cli, Command, ConfigCommand, TagCommand},
@@ -21,14 +21,8 @@ pub fn run() -> Result<(), AnyError> {
         Command::List { type_ } => {
             if let Some(config) = config {
                 let lib = Library::with_paths(config.library);
-                if let Some(list_resource) = type_ {
-                    for f in lib.iter(list_resource.into()) {
-                        println!("{}", f);
-                    }
-                } else {
-                    for f in lib.iter_all() {
-                        println!("{}", f);
-                    }
+                for f in lib.iter(type_.map(MediaType::from)) {
+                    println!("{}", f);
                 }
             } else {
                 fallback_config_not_found()?;
@@ -56,8 +50,8 @@ pub fn run() -> Result<(), AnyError> {
             if let Some(config) = config {
                 let lib = Library::with_paths(config.library);
                 match ta.command {
-                    TagCommand::List => {
-                        for resource in lib.iter_all() {
+                    TagCommand::List { type_ } => {
+                        for resource in lib.iter(type_.map(MediaType::from)) {
                             match resource.get_tags() {
                                 Ok(map) => {
                                     println!("--- {} ---", resource);

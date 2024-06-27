@@ -82,7 +82,10 @@ pub(crate) struct TagArgs {
 #[derive(Debug, Clone, Subcommand)]
 pub(crate) enum TagCommand {
     /// Extract all tags for every media file in the photos' collection.
-    List,
+    List {
+        /// Type of the resource to find.
+        type_: Option<PrivateMediaType>,
+    },
 
     /// Extract date and time information
     GetTime {
